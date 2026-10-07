@@ -137,6 +137,44 @@ async def test_get_items_service(
     assert result == {"todo.entity1": {"items": expected_items}}
 
 
+async def test_get_items_service_with_section(
+    hass: HomeAssistant,
+    test_entity: TodoListEntity,
+) -> None:
+    """Test that a To-do item section is returned by the service."""
+
+    test_entity._attr_todo_items = [
+        TodoItem(
+            summary="Item #1",
+            uid="1",
+            status=TodoItemStatus.NEEDS_ACTION,
+            section="My section",
+        )
+    ]
+    await create_mock_platform(hass, [test_entity])
+
+    result = await hass.services.async_call(
+        DOMAIN,
+        TodoServices.GET_ITEMS,
+        {},
+        target={ATTR_ENTITY_ID: "todo.entity1"},
+        blocking=True,
+        return_response=True,
+    )
+    assert result == {
+        "todo.entity1": {
+            "items": [
+                {
+                    "summary": "Item #1",
+                    "uid": "1",
+                    "status": "needs_action",
+                    "section": "My section",
+                }
+            ]
+        }
+    }
+
+
 async def test_unsupported_websocket(
     hass: HomeAssistant,
     hass_ws_client: WebSocketGenerator,
@@ -1087,6 +1125,7 @@ async def test_subscribe(
                 "due": None,
                 "description": None,
                 "completed": None,
+                "section": None,
             },
             {
                 "summary": "Item #2",
@@ -1095,6 +1134,7 @@ async def test_subscribe(
                 "due": None,
                 "description": None,
                 "completed": None,
+                "section": None,
             },
         ]
     }
@@ -1115,6 +1155,7 @@ async def test_subscribe(
                 "due": None,
                 "description": None,
                 "completed": None,
+                "section": None,
             },
             {
                 "summary": "Item #2",
@@ -1123,6 +1164,7 @@ async def test_subscribe(
                 "due": None,
                 "description": None,
                 "completed": None,
+                "section": None,
             },
             {
                 "summary": "Item #3",
@@ -1131,6 +1173,7 @@ async def test_subscribe(
                 "due": None,
                 "description": None,
                 "completed": None,
+                "section": None,
             },
         ]
     }

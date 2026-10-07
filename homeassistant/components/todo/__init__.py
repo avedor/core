@@ -230,6 +230,9 @@ class TodoItem:
     completed: datetime.datetime | None = None
     """The date and time that a to-do item was marked completed."""
 
+    section: str | None = None
+    """The section the To-do item belongs to, if the list supports sections."""
+
 
 CACHED_PROPERTIES_WITH_ATTR_ = {
     "todo_items",

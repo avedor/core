@@ -92,6 +92,7 @@ class TodoistTodoListEntity(CoordinatorEntity[TodoistCoordinator], TodoListEntit
         if self.coordinator.data is None:
             self._attr_todo_items = None
         else:
+            section_names = self.coordinator.section_names
             items = []
             for task in self.coordinator.data:
                 if task.project_id != self._project_id:
@@ -103,6 +104,9 @@ class TodoistTodoListEntity(CoordinatorEntity[TodoistCoordinator], TodoListEntit
                     status = TodoItemStatus.COMPLETED
                 else:
                     status = TodoItemStatus.NEEDS_ACTION
+                section = (
+                    section_names.get(task.section_id) if task.section_id else None
+                )
                 items.append(
                     TodoItem(
                         summary=task.content,
@@ -110,6 +114,7 @@ class TodoistTodoListEntity(CoordinatorEntity[TodoistCoordinator], TodoListEntit
                         status=status,
                         due=parse_due_date(task.due),
                         description=task.description or None,  # Don't use empty string
+                        section=section,
                     )
                 )
             self._attr_todo_items = items

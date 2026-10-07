@@ -20,7 +20,13 @@ from homeassistant.const import ATTR_ENTITY_ID, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_component import async_update_entity
 
-from .conftest import PROJECT_ID, make_api_due, make_api_response, make_api_task
+from .conftest import (
+    PROJECT_ID,
+    SECTION_ID,
+    make_api_due,
+    make_api_response,
+    make_api_task,
+)
 
 from tests.typing import WebSocketGenerator
 
@@ -214,6 +220,48 @@ async def test_add_todo_list_item(
         return_response=True,
     )
     assert result == {"todo.name": {"items": [expected_item]}}
+
+
+@pytest.mark.parametrize(
+    ("tasks", "expected_items"),
+    [
+        (
+            [
+                make_api_task(
+                    id="task-id-1",
+                    content="Soda",
+                    completed_at=None,
+                    section_id=SECTION_ID,
+                )
+            ],
+            [
+                {
+                    "summary": "Soda",
+                    "uid": "task-id-1",
+                    "status": "needs_action",
+                    "section": "Section Name",
+                }
+            ],
+        ),
+    ],
+)
+async def test_get_items_with_section(
+    hass: HomeAssistant,
+    setup_integration: None,
+    tasks: list[Task],
+    expected_items: list[dict[str, Any]],
+) -> None:
+    """Test that a To-do item returns its section name."""
+
+    result = await hass.services.async_call(
+        TODO_DOMAIN,
+        TodoServices.GET_ITEMS,
+        {},
+        target={ATTR_ENTITY_ID: "todo.name"},
+        blocking=True,
+        return_response=True,
+    )
+    assert result == {"todo.name": {"items": expected_items}}
 
 
 @pytest.mark.parametrize(

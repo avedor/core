@@ -48,15 +48,26 @@ class TodoistCoordinator(DataUpdateCoordinator[list[Task]]):
         self.api = api
         self._projects: list[Project] | None = None
         self._labels: list[Label] | None = None
+        self._section_names: dict[str, str] = {}
         self.token = token
 
     async def _async_update_data(self) -> list[Task]:
         """Fetch tasks from the Todoist API."""
         try:
             tasks_async = await self.api.get_tasks()
+            sections_async = await self.api.get_sections()
         except Exception as err:
             raise UpdateFailed(f"Error communicating with API: {err}") from err
+        self._section_names = {
+            section.id: section.name
+            for section in await flatten_async_pages(sections_async)
+        }
         return await flatten_async_pages(tasks_async)
+
+    @property
+    def section_names(self) -> dict[str, str]:
+        """Return a mapping of section ID to section name."""
+        return self._section_names
 
     async def async_get_projects(self) -> list[Project]:
         """Return todoist projects fetched at most once."""
